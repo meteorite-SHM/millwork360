@@ -1,15 +1,28 @@
-export const ORDER_STATUSES = ['Takeoff','Ordered','In Production','Ready to Ship','Completed','On Hold']
-
+export const ORDER_STATUSES = ['Takeoff','Ordered','In Production','CNC Prep','Ready for CNC','Ready to Ship','Completed','On Hold']
 export const PO_STATUSES = ['Draft','Sent','Ordered','Partially Received','Received','Cancelled']
+export const CNC_STATUSES = ['Pending','Run','Done','Pause','Hold']
 
 export function orderStatusBadge(status) {
   const map = {
     'Takeoff': 'badge-blue',
     'Ordered': 'badge-amber',
     'In Production': 'badge-amber',
+    'CNC Prep': 'badge-blue',
+    'Ready for CNC': 'badge-green',
     'Ready to Ship': 'badge-green',
     'Completed': 'badge-gray',
     'On Hold': 'badge-red',
+  }
+  return map[status] || 'badge-gray'
+}
+
+export function cncStatusBadge(status) {
+  const map = {
+    'Pending': 'badge-gray',
+    'Run': 'badge-blue',
+    'Done': 'badge-green',
+    'Pause': 'badge-amber',
+    'Hold': 'badge-red',
   }
   return map[status] || 'badge-gray'
 }
@@ -24,12 +37,6 @@ export function poStatusBadge(status) {
     'Cancelled': 'badge-red',
   }
   return map[status] || 'badge-gray'
-}
-
-export function invStatus(qty, reorder) {
-  if (qty <= 0) return { label: 'Out', cls: 'badge-red', pct: 0 }
-  if (qty <= reorder) return { label: 'Low', cls: 'badge-amber', pct: Math.max(8, (qty / (reorder * 2)) * 100) }
-  return { label: 'OK', cls: 'badge-green', pct: Math.min(100, (qty / (reorder * 3)) * 100) }
 }
 
 export function invBarColor(qty, reorder) {
