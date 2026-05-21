@@ -1,14 +1,15 @@
-export const ORDER_STATUSES = ['Takeoff','Ordered','In Production','CNC Prep','Ready for CNC','Ready to Ship','Completed','On Hold']
+export const ORDER_STATUSES = ['Takeoff','Waiting on MTL','In Production','Ready for CNC','Ready for PH','Finishing','Ready to Ship','Completed','On Hold']
 export const PO_STATUSES = ['Draft','Sent','Ordered','Partially Received','Received','Cancelled']
 export const CNC_STATUSES = ['Pending','Run','Done','Pause','Hold']
 
 export function orderStatusBadge(status) {
   const map = {
     'Takeoff': 'badge-blue',
-    'Ordered': 'badge-amber',
+    'Waiting on MTL': 'badge-red',
     'In Production': 'badge-amber',
-    'CNC Prep': 'badge-blue',
     'Ready for CNC': 'badge-green',
+    'Ready for PH': 'badge-green',
+    'Finishing': 'badge-amber',
     'Ready to Ship': 'badge-green',
     'Completed': 'badge-gray',
     'On Hold': 'badge-red',

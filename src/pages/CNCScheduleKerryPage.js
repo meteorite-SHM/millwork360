@@ -12,7 +12,7 @@ const CNC_STATUS_COLORS = {
 }
 
 const PROGRAM_STATUSES = ['', 'DONE', 'RUN', 'PENDING']
-const ORDER_STATUSES = ['Takeoff','Ordered','In Production','CNC Prep','Ready for CNC','Ready to Ship','Completed','On Hold']
+const ORDER_STATUSES = ['Takeoff','Waiting on MTL','In Production','Ready for CNC','Ready for PH','Finishing','Ready to Ship','Completed','On Hold']
 
 function ImportModal({ onClose, onImported }) {
   const { addToast } = useToast()
