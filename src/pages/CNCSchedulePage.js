@@ -67,8 +67,7 @@ function ImportModal({ onClose, onImported }) {
         cnc_status: CNC_STATUSES.includes(cncStatusRaw) ? cncStatusRaw : 'Pending',
         cnc_req: cncReq || null,
         cnc_program: cncProgram || null,
-        machine: 'Kerry',
-        status: 'Ready for CNC',
+        status: 'In Production',
       })
     }
     if (!rows.length) {
@@ -111,7 +110,7 @@ function ImportModal({ onClose, onImported }) {
   )
 }
 
-export default function CNCScheduleKerryPage() {
+export default function CNCSchedulePage() {
   const { addToast } = useToast()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
@@ -124,7 +123,6 @@ export default function CNCScheduleKerryPage() {
       .from('orders')
       .select('*')
       .in('status', ['CNC Prep','Ready for CNC','In Production'])
-      .eq('machine', 'Kerry')
       .order('cnc_due_date', { ascending: true, nullsFirst: false })
     setOrders(data || [])
     setLoading(false)
@@ -211,7 +209,7 @@ export default function CNCScheduleKerryPage() {
     <div>
       <div className="page-header">
         <div>
-          <h1>CNC Schedule (Kerry)</h1>
+          <h1>CNC Schedule</h1>
           <p>{filtered.length} of {orders.length} orders</p>
         </div>
         <div style={{display:'flex',gap:8,alignItems:'center'}}>

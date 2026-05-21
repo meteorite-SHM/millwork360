@@ -68,7 +68,7 @@ function ImportModal({ onClose, onImported }) {
         cnc_req: cncReq || null,
         cnc_program: cncProgram || null,
         machine: 'Kerry',
-        status: 'Ready for CNC',
+        status: 'In Production',
       })
     }
     if (!rows.length) {
