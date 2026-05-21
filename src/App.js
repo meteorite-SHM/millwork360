@@ -9,11 +9,13 @@ import PurchaseOrdersPage from './pages/PurchaseOrdersPage'
 import VendorsPage from './pages/VendorsPage'
 import InventoryPage from './pages/InventoryPage'
 import CNCSchedulePage from './pages/CNCSchedulePage'
+import CNCScheduleKerryPage from './pages/CNCScheduleKerryPage'
 
 const PAGE_TITLES = {
   dashboard: 'Dashboard',
   orders: 'Orders',
-  'cnc-schedule': 'CNC Schedule',
+  'cnc-schedule': 'CNC Schedule (Josh)',
+  'cnc-schedule-kerry': 'CNC Schedule (Kerry)',
   'purchase-orders': 'Purchase Orders',
   vendors: 'Vendors',
   inventory: 'Inventory',
@@ -28,6 +30,7 @@ function Shell() {
     dashboard: <Dashboard setActive={setActive}/>,
     orders: <OrdersPage/>,
     'cnc-schedule': <CNCSchedulePage/>,
+    'cnc-schedule-kerry': <CNCScheduleKerryPage/>,
     'purchase-orders': <PurchaseOrdersPage/>,
     vendors: <VendorsPage/>,
     inventory: <InventoryPage/>,
