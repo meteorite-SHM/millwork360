@@ -12,6 +12,7 @@ const CNC_STATUS_COLORS = {
 }
 
 const PROGRAM_STATUSES = ['', 'DONE', 'RUN', 'PENDING']
+const ORDER_STATUSES = ['Takeoff','Ordered','In Production','CNC Prep','Ready for CNC','Ready to Ship','Completed','On Hold']
 
 function ImportModal({ onClose, onImported }) {
   const { addToast } = useToast()
@@ -149,6 +150,15 @@ export default function CNCSchedulePage() {
     }
   }
 
+  async function updateOrderStatus(id, status) {
+    const { error } = await supabase.from('orders').update({ status: status }).eq('id', id)
+    if (error) addToast(error.message, 'error')
+    else {
+      setOrders(function(o){ return o.map(function(x){ return x.id === id ? Object.assign({},x,{status:status}) : x }) })
+      addToast('Order status updated', 'success')
+    }
+  }
+
   if (loading) return <div className="loading"><div className="spinner"/>Loading...</div>
 
   const today = new Date().toISOString().split('T')[0]
@@ -208,6 +218,7 @@ export default function CNCSchedulePage() {
                 <th>Qty</th>
                 <th>Species</th>
                 <th>Door Style</th>
+                <th>Order Status</th>
                 <th>CNC Due</th>
                 <th>CNC Req</th>
                 <th>Program</th>
@@ -217,7 +228,7 @@ export default function CNCSchedulePage() {
             <tbody>
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={11} style={{textAlign:'center',color:'var(--text3)',padding:'40px'}}>
+                  <td colSpan={12} style={{textAlign:'center',color:'var(--text3)',padding:'40px'}}>
                     No orders found.
                   </td>
                 </tr>
@@ -233,6 +244,15 @@ export default function CNCSchedulePage() {
                     <td style={{textAlign:'center'}}>{o.qty || '-'}</td>
                     <td>{o.species || '-'}</td>
                     <td style={{maxWidth:200,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',color:'var(--text2)'}}>{o.door_style || o.description || '-'}</td>
+                    <td>
+                      <select
+                        value={o.status || 'Takeoff'}
+                        onChange={function(e){ updateOrderStatus(o.id, e.target.value) }}
+                        style={dropdownStyle}
+                      >
+                        {ORDER_STATUSES.map(function(s){ return <option key={s} value={s}>{s}</option> })}
+                      </select>
+                    </td>
                     <td style={{fontWeight:500,color:isOverdue?'var(--red)':'var(--text)'}}>{fmtDate(o.cnc_due_date)}</td>
                     <td style={{fontSize:'12px',color:'var(--text2)',maxWidth:160,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{o.cnc_req || '-'}</td>
                     <td>
