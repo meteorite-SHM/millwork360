@@ -172,6 +172,7 @@ export default function CNCSchedulePage() {
 
   const today = new Date().toISOString().split('T')[0]
   const overdue = orders.filter(function(o){ return o.cnc_due_date && o.cnc_due_date < today && o.cnc_status !== 'Done' })
+  const readyCount = orders.filter(function(o){ return o.status === 'Ready for CNC' }).length
 
   const filtered = orders.filter(function(o){
     if (!search) return true
@@ -180,6 +181,17 @@ export default function CNCSchedulePage() {
            (o.customer || '').toLowerCase().includes(s) ||
            (o.batch || '').toLowerCase().includes(s) ||
            (o.builder || '').toLowerCase().includes(s)
+  })
+
+  // Sort: Ready for CNC first (by due date), then everything else (by due date)
+  const sorted = filtered.slice().sort(function(a, b) {
+    const aReady = a.status === 'Ready for CNC' ? 0 : 1
+    const bReady = b.status === 'Ready for CNC' ? 0 : 1
+    if (aReady !== bReady) return aReady - bReady
+    if (!a.cnc_due_date && !b.cnc_due_date) return 0
+    if (!a.cnc_due_date) return 1
+    if (!b.cnc_due_date) return -1
+    return a.cnc_due_date < b.cnc_due_date ? -1 : 1
   })
 
   const dropdownStyle = {
@@ -209,11 +221,19 @@ export default function CNCSchedulePage() {
         </div>
       </div>
 
-      {overdue.length > 0 && (
-        <div style={{background:'var(--red-light)',border:'1px solid #F7C1C1',borderRadius:'var(--radius)',padding:'10px 16px',marginBottom:16,fontSize:'13px',color:'var(--red)',fontWeight:500}}>
-          {overdue.length} order(s) past CNC due date
+      <div style={{display:'flex',gap:10,marginBottom:16}}>
+        <div style={{background:'var(--green-light)',border:'1px solid #C2DFA0',borderRadius:'var(--radius)',padding:'10px 16px',fontSize:'13px',color:'var(--green)',fontWeight:600}}>
+          {readyCount} Ready for CNC
         </div>
-      )}
+        {overdue.length > 0 && (
+          <div style={{background:'var(--red-light)',border:'1px solid #F7C1C1',borderRadius:'var(--radius)',padding:'10px 16px',fontSize:'13px',color:'var(--red)',fontWeight:600}}>
+            {overdue.length} Overdue
+          </div>
+        )}
+        <div style={{background:'var(--surface2)',border:'1px solid var(--border)',borderRadius:'var(--radius)',padding:'10px 16px',fontSize:'13px',color:'var(--text2)',fontWeight:500}}>
+          {orders.length - readyCount} Not Yet Ready
+        </div>
+      </div>
 
       <div className="card">
         <div className="table-wrap">
@@ -235,17 +255,27 @@ export default function CNCSchedulePage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.length === 0 && (
+              {sorted.length === 0 && (
                 <tr>
                   <td colSpan={12} style={{textAlign:'center',color:'var(--text3)',padding:'40px'}}>
                     No orders found.
                   </td>
                 </tr>
               )}
-              {filtered.map(function(o){
+              {sorted.map(function(o, index){
                 const isOverdue = o.cnc_due_date && o.cnc_due_date < today && o.cnc_status !== 'Done'
-                return (
-                  <tr key={o.id} style={isOverdue ? {background:'#FCEBEB44'} : {}}>
+                const isReady = o.status === 'Ready for CNC'
+                const prevReady = index > 0 && sorted[index-1].status === 'Ready for CNC'
+                const showDivider = !isReady && index > 0 && prevReady
+                return [
+                  showDivider ? (
+                    <tr key={'div-' + o.id}>
+                      <td colSpan={12} style={{padding:'4px 18px',background:'var(--surface2)',fontSize:'11px',fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:'0.06em',borderBottom:'1px solid var(--border)'}}>
+                        Not Yet Ready — sorted by CNC due date
+                      </td>
+                    </tr>
+                  ) : null,
+                  <tr key={o.id} style={{background: isReady ? '#F0FAE8' : isOverdue ? '#FCEBEB44' : ''}}>
                     <td style={{fontWeight:500,color:'var(--text2)'}}>{o.builder || '-'}</td>
                     <td style={{fontWeight:500}}>{o.customer}</td>
                     <td><span style={{fontFamily:'var(--mono)',fontSize:'12px'}}>{o.order_number}</span></td>
@@ -257,7 +287,7 @@ export default function CNCSchedulePage() {
                       <select
                         value={o.status || 'Takeoff'}
                         onChange={function(e){ updateOrderStatus(o.id, e.target.value) }}
-                        style={dropdownStyle}
+                        style={Object.assign({}, dropdownStyle, {background: isReady ? '#E4F5D0' : 'var(--surface)'})}
                       >
                         {ORDER_STATUSES.map(function(s){ return <option key={s} value={s}>{s}</option> })}
                       </select>
@@ -300,7 +330,7 @@ export default function CNCSchedulePage() {
                       </select>
                     </td>
                   </tr>
-                )
+                ]
               })}
             </tbody>
           </table>
