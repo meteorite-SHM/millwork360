@@ -12,7 +12,7 @@ function IconLogout() { return <svg viewBox="0 0 24 24" fill="none" stroke="curr
 const navItems = [
   { key: 'dashboard', label: 'Dashboard', icon: IconDashboard, section: 'Main' },
   { key: 'orders', label: 'Orders', icon: IconOrders, section: null },
-  { key: 'cnc-schedule', label: 'CNC Schedule', icon: IconCNC, section: null },
+  { key: 'cnc-schedule', label: 'CNC Schedule (Josh)', icon: IconCNC, section: null },
   { key: 'purchase-orders', label: 'Purchase Orders', icon: IconPO, section: 'Procurement' },
   { key: 'vendors', label: 'Vendors', icon: IconVendors, section: null },
   { key: 'inventory', label: 'Inventory', icon: IconInventory, section: 'Warehouse' },
