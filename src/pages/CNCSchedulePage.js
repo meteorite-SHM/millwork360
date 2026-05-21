@@ -11,6 +11,8 @@ const CNC_STATUS_COLORS = {
   Pending: 'var(--text3)',
 }
 
+const PROGRAM_STATUSES = ['', 'DONE', 'RUN', 'PENDING']
+
 function ImportModal({ onClose, onImported }) {
   const { addToast } = useToast()
   const [text, setText] = useState('')
@@ -74,10 +76,7 @@ function ImportModal({ onClose, onImported }) {
     }
     const { error } = await supabase.from('orders').upsert(rows, { onConflict: 'order_number' })
     if (error) addToast(error.message, 'error')
-    else {
-      addToast(rows.length + ' orders imported!', 'success')
-      onImported()
-    }
+    else { addToast(rows.length + ' orders imported!', 'success'); onImported() }
     setSaving(false)
   }
 
@@ -140,10 +139,30 @@ export default function CNCSchedulePage() {
     setUpdatingId(null)
   }
 
+  async function updateCNCProgram(id, program) {
+    const { error } = await supabase.from('orders').update({ cnc_program: program }).eq('id', id)
+    if (error) addToast(error.message, 'error')
+    else {
+      setOrders(function(o){ return o.map(function(x){ return x.id === id ? Object.assign({},x,{cnc_program:program}) : x }) })
+      addToast('Program updated', 'success')
+    }
+  }
+
   if (loading) return <div className="loading"><div className="spinner"/>Loading...</div>
 
   const today = new Date().toISOString().split('T')[0]
   const overdue = orders.filter(function(o){ return o.cnc_due_date && o.cnc_due_date < today && o.cnc_status !== 'Done' })
+
+  const dropdownStyle = {
+    padding:'4px 8px',
+    borderRadius:'var(--radius)',
+    border:'1px solid var(--border2)',
+    background:'var(--surface)',
+    fontSize:'12px',
+    fontWeight:500,
+    width:'auto',
+    cursor:'pointer'
+  }
 
   return (
     <div>
@@ -201,26 +220,20 @@ export default function CNCSchedulePage() {
                     <td style={{fontWeight:500,color:isOverdue?'var(--red)':'var(--text)'}}>{fmtDate(o.cnc_due_date)}</td>
                     <td style={{fontSize:'12px',color:'var(--text2)',maxWidth:160,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{o.cnc_req || '-'}</td>
                     <td>
-                      <span className={'badge ' + (o.cnc_program === 'DONE' || o.cnc_program === 'RUN' ? 'badge-green' : 'badge-gray')}>
-                        {o.cnc_program || '-'}
-                      </span>
+                      <select
+                        value={o.cnc_program || ''}
+                        onChange={function(e){ updateCNCProgram(o.id, e.target.value) }}
+                        style={dropdownStyle}
+                      >
+                        {PROGRAM_STATUSES.map(function(s){ return <option key={s} value={s}>{s === '' ? '-' : s}</option> })}
+                      </select>
                     </td>
                     <td>
                       <select
                         value={o.cnc_status || 'Pending'}
                         onChange={function(e){ updateCNCStatus(o.id, e.target.value) }}
                         disabled={updatingId === o.id}
-                        style={{
-                          padding:'4px 8px',
-                          borderRadius:'var(--radius)',
-                          border:'1px solid var(--border2)',
-                          background:'var(--surface)',
-                          fontSize:'12px',
-                          fontWeight:500,
-                          color: CNC_STATUS_COLORS[o.cnc_status || 'Pending'],
-                          width:'auto',
-                          cursor:'pointer'
-                        }}
+                        style={Object.assign({}, dropdownStyle, {color: CNC_STATUS_COLORS[o.cnc_status || 'Pending']})}
                       >
                         {CNC_STATUSES.map(function(s){ return <option key={s} value={s}>{s}</option> })}
                       </select>
