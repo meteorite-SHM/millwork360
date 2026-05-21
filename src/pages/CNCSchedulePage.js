@@ -115,6 +115,7 @@ export default function CNCSchedulePage() {
   const [loading, setLoading] = useState(true)
   const [showImport, setShowImport] = useState(false)
   const [updatingId, setUpdatingId] = useState(null)
+  const [search, setSearch] = useState('')
 
   async function load() {
     const { data } = await supabase
@@ -153,6 +154,15 @@ export default function CNCSchedulePage() {
   const today = new Date().toISOString().split('T')[0]
   const overdue = orders.filter(function(o){ return o.cnc_due_date && o.cnc_due_date < today && o.cnc_status !== 'Done' })
 
+  const filtered = orders.filter(function(o){
+    if (!search) return true
+    const s = search.toLowerCase()
+    return (o.order_number || '').toLowerCase().includes(s) ||
+           (o.customer || '').toLowerCase().includes(s) ||
+           (o.batch || '').toLowerCase().includes(s) ||
+           (o.builder || '').toLowerCase().includes(s)
+  })
+
   const dropdownStyle = {
     padding:'4px 8px',
     borderRadius:'var(--radius)',
@@ -169,9 +179,15 @@ export default function CNCSchedulePage() {
       <div className="page-header">
         <div>
           <h1>CNC Schedule</h1>
-          <p>{orders.length} orders</p>
+          <p>{filtered.length} of {orders.length} orders</p>
         </div>
-        <button className="btn" onClick={function(){ setShowImport(true) }}>Import from Excel</button>
+        <div style={{display:'flex',gap:8,alignItems:'center'}}>
+          <div className="search-bar" style={{minWidth:240}}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{width:14,height:14,color:'var(--text3)',flexShrink:0}}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input value={search} onChange={function(e){ setSearch(e.target.value) }} placeholder="Search order, customer, batch..."/>
+          </div>
+          <button className="btn" onClick={function(){ setShowImport(true) }}>Import from Excel</button>
+        </div>
       </div>
 
       {overdue.length > 0 && (
@@ -199,14 +215,14 @@ export default function CNCSchedulePage() {
               </tr>
             </thead>
             <tbody>
-              {orders.length === 0 && (
+              {filtered.length === 0 && (
                 <tr>
                   <td colSpan={11} style={{textAlign:'center',color:'var(--text3)',padding:'40px'}}>
-                    No orders in CNC schedule yet. Import from Excel or set an order status to Ready for CNC.
+                    No orders found.
                   </td>
                 </tr>
               )}
-              {orders.map(function(o){
+              {filtered.map(function(o){
                 const isOverdue = o.cnc_due_date && o.cnc_due_date < today && o.cnc_status !== 'Done'
                 return (
                   <tr key={o.id} style={isOverdue ? {background:'#FCEBEB44'} : {}}>
