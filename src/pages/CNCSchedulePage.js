@@ -67,6 +67,7 @@ function ImportModal({ onClose, onImported }) {
         cnc_status: CNC_STATUSES.includes(cncStatusRaw) ? cncStatusRaw : 'Pending',
         cnc_req: cncReq || null,
         cnc_program: cncProgram || null,
+        machine: 'Kerry',
         status: 'Ready for CNC',
       })
     }
@@ -110,7 +111,7 @@ function ImportModal({ onClose, onImported }) {
   )
 }
 
-export default function CNCSchedulePage() {
+export default function CNCScheduleKerryPage() {
   const { addToast } = useToast()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
@@ -123,6 +124,7 @@ export default function CNCSchedulePage() {
       .from('orders')
       .select('*')
       .in('status', ['CNC Prep','Ready for CNC','In Production'])
+      .eq('machine', 'Kerry')
       .order('cnc_due_date', { ascending: true, nullsFirst: false })
     setOrders(data || [])
     setLoading(false)
@@ -209,7 +211,7 @@ export default function CNCSchedulePage() {
     <div>
       <div className="page-header">
         <div>
-          <h1>CNC Schedule</h1>
+          <h1>CNC Schedule (Kerry)</h1>
           <p>{filtered.length} of {orders.length} orders</p>
         </div>
         <div style={{display:'flex',gap:8,alignItems:'center'}}>
@@ -309,7 +311,15 @@ export default function CNCSchedulePage() {
                         }}
                       />
                     </td>
-                    <td style={{fontSize:'12px',color:'var(--text2)',maxWidth:160,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{o.cnc_req || '-'}</td>
+                    <td>
+                      <input
+                        type="text"
+                        defaultValue={o.cnc_req || ''}
+                        onBlur={function(e){ updateCNCReq(o.id, e.target.value); e.target.style.border='1px solid transparent'; e.target.style.background='transparent' }}
+                        onFocus={function(e){ e.target.style.border='1px solid var(--border2)'; e.target.style.background='var(--surface)' }}
+                        style={{padding:'4px 8px',borderRadius:'var(--radius)',border:'1px solid transparent',background:'transparent',fontSize:'12px',color:'var(--text2)',width:'160px',cursor:'text'}}
+                      />
+                    </td>
                     <td>
                       <select
                         value={o.cnc_program || ''}

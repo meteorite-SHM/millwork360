@@ -311,7 +311,15 @@ export default function CNCScheduleKerryPage() {
                         }}
                       />
                     </td>
-                    <td style={{fontSize:'12px',color:'var(--text2)',maxWidth:160,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{o.cnc_req || '-'}</td>
+                    <td>
+                      <input
+                        type="text"
+                        defaultValue={o.cnc_req || ''}
+                        onBlur={function(e){ updateCNCReq(o.id, e.target.value); e.target.style.border='1px solid transparent'; e.target.style.background='transparent' }}
+                        onFocus={function(e){ e.target.style.border='1px solid var(--border2)'; e.target.style.background='var(--surface)' }}
+                        style={{padding:'4px 8px',borderRadius:'var(--radius)',border:'1px solid transparent',background:'transparent',fontSize:'12px',color:'var(--text2)',width:'160px',cursor:'text'}}
+                      />
+                    </td>
                     <td>
                       <select
                         value={o.cnc_program || ''}
