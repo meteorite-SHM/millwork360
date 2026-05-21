@@ -150,6 +150,15 @@ export default function CNCSchedulePage() {
     }
   }
 
+  async function updateCNCDue(id, date) {
+    const { error } = await supabase.from('orders').update({ cnc_due_date: date || null }).eq('id', id)
+    if (error) addToast(error.message, 'error')
+    else {
+      setOrders(function(o){ return o.map(function(x){ return x.id === id ? Object.assign({},x,{cnc_due_date:date}) : x }) })
+      addToast('CNC due date updated', 'success')
+    }
+  }
+
   async function updateOrderStatus(id, status) {
     const { error } = await supabase.from('orders').update({ status: status }).eq('id', id)
     if (error) addToast(error.message, 'error')
@@ -253,7 +262,23 @@ export default function CNCSchedulePage() {
                         {ORDER_STATUSES.map(function(s){ return <option key={s} value={s}>{s}</option> })}
                       </select>
                     </td>
-                    <td style={{fontWeight:500,color:isOverdue?'var(--red)':'var(--text)'}}>{fmtDate(o.cnc_due_date)}</td>
+                    <td>
+                      <input
+                        type="date"
+                        value={o.cnc_due_date || ''}
+                        onChange={function(e){ updateCNCDue(o.id, e.target.value) }}
+                        style={{
+                          padding:'4px 8px',
+                          borderRadius:'var(--radius)',
+                          border:'1px solid var(--border2)',
+                          background: isOverdue ? 'var(--red-light)' : 'var(--surface)',
+                          fontSize:'12px',
+                          fontWeight:500,
+                          color: isOverdue ? 'var(--red)' : 'var(--text)',
+                          cursor:'pointer'
+                        }}
+                      />
+                    </td>
                     <td style={{fontSize:'12px',color:'var(--text2)',maxWidth:160,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{o.cnc_req || '-'}</td>
                     <td>
                       <select
