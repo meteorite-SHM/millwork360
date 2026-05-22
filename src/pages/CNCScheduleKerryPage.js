@@ -76,7 +76,7 @@ function ImportModal({ onClose, onImported }) {
       setSaving(false)
       return
     }
-    const { error } = await supabase.from('orders').upsert(rows, { onConflict: 'order_number' })
+    const { error } = await supabase.from('orders').upsert(rows, { onConflict: 'order_number', ignoreDuplicates: false })
     if (error) addToast(error.message, 'error')
     else { addToast(rows.length + ' orders imported!', 'success'); onImported() }
     setSaving(false)

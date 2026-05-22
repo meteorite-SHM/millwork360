@@ -52,8 +52,17 @@ function ImportModal({ onClose, onImported }) {
       const cncDue = parseDate((cols[7] || '').trim())
       const cncStatusRaw = (cols[8] || '').trim()
       const cncReq = (cols[9] || '').trim()
-      const cncProgram = (cols[10] || '').trim()
+      const cncProgramRaw = (cols[10] || '').trim()
       if (!orderNum || !customer) continue
+
+      // Map Excel CNC status to valid values
+      const cncStatusMap = { 'HOLD': 'Hold', 'Hold': 'Hold', 'Pause': 'Pause', 'PAUSE': 'Pause', 'RUN': 'Run', 'Run': 'Run', 'DONE': 'Done', 'Done': 'Done' }
+      const mappedCncStatus = cncStatusMap[cncStatusRaw] || (CNC_STATUSES.includes(cncStatusRaw) ? cncStatusRaw : 'Pending')
+
+      // Map Excel program status to valid values
+      const programMap = { 'DONE': 'DONE', 'Done': 'DONE', 'RUN': 'RUN', 'Run': 'RUN', 'PENDING': 'PENDING', 'Pending': 'PENDING' }
+      const mappedProgram = programMap[cncProgramRaw] || (cncProgramRaw ? cncProgramRaw.toUpperCase() : null)
+
       rows.push({
         order_number: orderNum,
         customer: customer,
@@ -64,9 +73,9 @@ function ImportModal({ onClose, onImported }) {
         door_style: doorStyle,
         description: doorStyle,
         cnc_due_date: cncDue,
-        cnc_status: CNC_STATUSES.includes(cncStatusRaw) ? cncStatusRaw : 'Pending',
+        cnc_status: mappedCncStatus,
         cnc_req: cncReq || null,
-        cnc_program: cncProgram || null,
+        cnc_program: mappedProgram || null,
         status: 'In Production',
       })
     }
@@ -75,7 +84,7 @@ function ImportModal({ onClose, onImported }) {
       setSaving(false)
       return
     }
-    const { error } = await supabase.from('orders').upsert(rows, { onConflict: 'order_number' })
+    const { error } = await supabase.from('orders').upsert(rows, { onConflict: 'order_number', ignoreDuplicates: false })
     if (error) addToast(error.message, 'error')
     else { addToast(rows.length + ' orders imported!', 'success'); onImported() }
     setSaving(false)
