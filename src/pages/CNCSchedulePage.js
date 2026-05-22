@@ -24,33 +24,33 @@ function ImportModal({ onClose, onImported }) {
     const s = str.trim()
     const months = { Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11 }
 
+    // Format: already YYYY-MM-DD
+    if (s.length === 10 && s[4] === '-' && s[7] === '-') return s
+
+    // Format: M/D/YY or MM/DD/YY or MM/DD/YYYY
+    const slashParts = s.split('/')
+    if (slashParts.length === 3) {
+      const m = parseInt(slashParts[0])
+      const d = parseInt(slashParts[1])
+      let y = parseInt(slashParts[2])
+      if (!isNaN(m) && !isNaN(d) && !isNaN(y)) {
+        if (y < 100) y = y + 2000
+        return y + '-' + String(m).padStart(2,'0') + '-' + String(d).padStart(2,'0')
+      }
+    }
+
     // Format: 19-May or 1-Jun
-    const parts = s.split('-')
-    if (parts.length === 2) {
-      const day = parseInt(parts[0])
-      const month = months[parts[1]]
+    const dashParts = s.split('-')
+    if (dashParts.length === 2) {
+      const day = parseInt(dashParts[0])
+      const month = months[dashParts[1]]
       if (!isNaN(day) && month !== undefined) {
         const year = new Date().getFullYear()
-        // If month is in the past by more than 3 months, use next year
         const date = new Date(year, month, day)
         const now = new Date()
         const diff = (date - now) / (1000 * 60 * 60 * 24)
         const finalYear = diff < -90 ? year + 1 : year
         return finalYear + '-' + String(month+1).padStart(2,'0') + '-' + String(day).padStart(2,'0')
-      }
-    }
-
-    // Format: already YYYY-MM-DD
-    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s
-
-    // Format: MM/DD/YYYY or M/D/YYYY
-    const slashParts = s.split('/')
-    if (slashParts.length === 3) {
-      const m = parseInt(slashParts[0])
-      const d = parseInt(slashParts[1])
-      const y = parseInt(slashParts[2])
-      if (!isNaN(m) && !isNaN(d) && !isNaN(y) && y > 1900) {
-        return y + '-' + String(m).padStart(2,'0') + '-' + String(d).padStart(2,'0')
       }
     }
 
