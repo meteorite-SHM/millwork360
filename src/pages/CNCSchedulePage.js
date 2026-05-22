@@ -22,12 +22,16 @@ function ImportModal({ onClose, onImported }) {
   function parseDate(str) {
     if (!str || !str.trim()) return null
     const s = str.trim()
+    console.log('parseDate input:', JSON.stringify(s))
     const months = { Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11 }
 
     // Format: already YYYY-MM-DD
-    if (s.length === 10 && s[4] === '-' && s[7] === '-') return s
+    if (s.length === 10 && s[4] === '-' && s[7] === '-') {
+      console.log('matched YYYY-MM-DD:', s)
+      return s
+    }
 
-    // Format: M/D/YY or MM/DD/YY or MM/DD/YYYY
+    // Format: M/D/YY or MM/DD/YY or MM/DD/YYYY (Excel common formats)
     const slashParts = s.split('/')
     if (slashParts.length === 3) {
       const m = parseInt(slashParts[0])
@@ -35,7 +39,9 @@ function ImportModal({ onClose, onImported }) {
       let y = parseInt(slashParts[2])
       if (!isNaN(m) && !isNaN(d) && !isNaN(y)) {
         if (y < 100) y = y + 2000
-        return y + '-' + String(m).padStart(2,'0') + '-' + String(d).padStart(2,'0')
+        const result = y + '-' + String(m).padStart(2,'0') + '-' + String(d).padStart(2,'0')
+        console.log('matched slash format:', result)
+        return result
       }
     }
 
@@ -50,10 +56,21 @@ function ImportModal({ onClose, onImported }) {
         const now = new Date()
         const diff = (date - now) / (1000 * 60 * 60 * 24)
         const finalYear = diff < -90 ? year + 1 : year
-        return finalYear + '-' + String(month+1).padStart(2,'0') + '-' + String(day).padStart(2,'0')
+        const result = finalYear + '-' + String(month+1).padStart(2,'0') + '-' + String(day).padStart(2,'0')
+        console.log('matched dash-month format:', result)
+        return result
       }
     }
 
+    // Try native Date parse as last resort
+    const d = new Date(s)
+    if (!isNaN(d.getTime())) {
+      const result = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0')
+      console.log('matched native parse:', result)
+      return result
+    }
+
+    console.log('parseDate: no match for:', s)
     return null
   }
 
@@ -72,10 +89,11 @@ function ImportModal({ onClose, onImported }) {
       const qty = parseInt(cols[4]) || null
       const species = (cols[5] || '').trim()
       const doorStyle = (cols[6] || '').trim()
-      const cncDue = parseDate((cols[7] || '').trim())
-      const cncStatusRaw = (cols[8] || '').trim()
+      const orderStatus = (cols[7] || '').trim()
+      const cncDue = parseDate((cols[8] || '').trim())
       const cncReq = (cols[9] || '').trim()
       const cncProgramRaw = (cols[10] || '').trim()
+      const cncStatusRaw = (cols[11] || '').trim()
       if (!orderNum || !customer) continue
 
       // Map Excel CNC status to valid values
@@ -99,7 +117,7 @@ function ImportModal({ onClose, onImported }) {
         cnc_status: mappedCncStatus,
         cnc_req: cncReq || null,
         cnc_program: mappedProgram || null,
-        status: 'In Production',
+        status: (function(s){ const valid = ['Takeoff','Waiting on MTL','In Production','Ready for CNC','Ready for PH','Finishing','Ready to Ship','Completed','On Hold']; return valid.includes(s) ? s : 'In Production' })(orderStatus),
       })
     }
     if (!rows.length) {
